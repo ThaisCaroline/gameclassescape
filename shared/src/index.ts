@@ -1,0 +1,16 @@
+export type { DeskKind, DeskPublic } from './desk.js';
+export type { QuestionPublic } from './question.js';
+export type { QuestionInput } from './question-input.js';
+export type { StudentStatus, StudentPublic } from './student.js';
+export type { RoundPhase, TeacherFacing, RoundWinner, RoundPublic } from './round.js';
+export type { RoomPublic } from './room.js';
+export type { ErrorCode, Ack } from './ack.js';
+export type { ClientToServerEvents } from './client-events.js';
+export type { AnswerOutcome, ServerToClientEvents } from './server-events.js';
+export type { SoloRole, Difficulty } from './solo.js';
+export type { SampleQuestion } from './sample-questions.js';
+export { JUMP_RANGE, canReach, inJumpRange, jumpDistance } from './reach.js';
+export { jumpsToDoor } from './door-distance.js';
+export { forbiddenSeatIds } from './seating.js';
+export { SOLO_ROLES, DIFFICULTIES } from './solo.js';
+export { SAMPLE_QUESTIONS } from './sample-questions.js';

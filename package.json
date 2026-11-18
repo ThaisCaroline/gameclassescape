@@ -1,0 +1,21 @@
+{
+  "name": "game-classroom",
+  "private": true,
+  "workspaces": ["shared", "server", "client"],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev:server": "npm run dev -w server",
+    "dev:client": "npm run dev -w client",
+    "typecheck": "tsc -b shared server client",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "npm run build -w client",
+    "build:server": "esbuild server/src/main.ts --bundle --platform=node --target=node20 --format=cjs --external:bufferutil --external:utf-8-validate --outfile=dist/server/main.cjs --log-level=warning",
+    "start": "node dist/server/main.cjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.5",
+    "typescript": "^5.6.0"
+  }
+}

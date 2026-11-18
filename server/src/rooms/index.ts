@@ -1,0 +1,12 @@
+export type { Room } from './room.js';
+export type { PendingJump } from './pending-jump.js';
+export { createRoom, findRoom } from './room-registry.js';
+export { addStudent } from './join-room.js';
+export { cancelPendingJump } from './cancel-jump.js';
+export { endRound, endRoundIfDecided } from './end-round.js';
+export { removeStudent, closeRoom } from './leave-room.js';
+export { toRoomPublic } from './to-public.js';
+export { questionForDesk } from './desk-question.js';
+export { farthestFreeDesk, isOccupied } from './occupancy.js';
+export { setUpClassroom } from './set-up-classroom.js';
+export { pickSeat } from './pick-seat.js';

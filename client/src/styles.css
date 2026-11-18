@@ -1,0 +1,309 @@
+:root {
+  color-scheme: dark;
+  --bg: #0b0b10;
+  --panel: #16161f;
+  --text: #e8e8ee;
+  --muted: #9a9aab;
+  --accent: #c0392b;
+  --error: #ff6b6b;
+}
+
+* { box-sizing: border-box; }
+
+/* Sem isto, `display: flex/grid` dos componentes sobrescreve o atributo hidden. */
+[hidden] { display: none !important; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+}
+
+.screen {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+h1 { margin: 8px 0; font-size: 1.6rem; }
+h2 { margin: 12px 0 0; font-size: 1.1rem; color: var(--muted); }
+
+label { color: var(--muted); font-size: 0.9rem; }
+
+input {
+  padding: 14px;
+  font-size: 1.1rem;
+  border: 1px solid #2a2a38;
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+}
+
+button {
+  padding: 16px;
+  font-size: 1.1rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+}
+
+button.primary { background: var(--accent); }
+button:disabled { opacity: 0.5; }
+
+.error { color: var(--error); min-height: 1.2em; margin: 0; }
+.notice, .hint { color: var(--muted); margin: 0; }
+
+.room-code { letter-spacing: 0.15em; }
+
+.splash { min-height: 70vh; justify-content: center; text-align: center; }
+.mute-button {
+  position: fixed;
+  top: calc(8px + env(safe-area-inset-top));
+  right: 8px;
+  z-index: 50;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+/* Painel do professor (notebook): alunos à esquerda, perguntas à direita. */
+.screen.wide { max-width: 1000px; }
+.columns { display: grid; gap: 24px; }
+.screen.wide .columns { grid-template-columns: 260px 1fr; }
+@media (max-width: 760px) { .screen.wide .columns { grid-template-columns: 1fr; } }
+
+.teacher-setup { display: flex; flex-direction: column; gap: 12px; }
+.teacher-setup h2 { margin-top: 0; }
+
+.q-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.q-button { min-width: 44px; padding: 10px 0; border: 2px solid transparent; }
+.q-button.done { border-color: #2e8b57; }
+.q-button.selected { outline: 2px solid var(--text); }
+
+/* ---------- Telas de jogo: tela cheia, em paisagem. Barra fina no topo; a sala à esquerda e um painel lateral à direita. ---------- */
+.game-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  overflow: hidden;
+}
+
+.hud {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 36px;
+  padding: 4px 120px 4px calc(12px + env(safe-area-inset-left)); /* o botão de som fica no canto direito */
+  background: var(--bg);
+}
+.hud-code { font-weight: 700; letter-spacing: 0.1em; white-space: nowrap; }
+.hud-clock { color: var(--muted); font-size: 0.9rem; }
+
+.game-body { flex: 1; display: flex; min-height: 0; }
+.stage-wrap { position: relative; flex: 1; min-width: 0; }
+/* O canvas Phaser é ampliado sem suavizar, para manter o pixel art nítido. */
+.stage { position: absolute; inset: 0; background: #000; }
+.stage canvas { display: block; image-rendering: pixelated; touch-action: manipulation; }
+
+/* Painel lateral: tudo o que não é a sala (aviso do professor, pergunta, explicações) fica aqui, sem cobrir as cadeiras. */
+.side-panel {
+  width: clamp(260px, 36vw, 420px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  background: var(--bg);
+  border-left: 1px solid #1d1d28;
+  overflow-y: auto;
+}
+
+/* Camada por cima da cena em primeira pessoa: setas de giro, bússola e a pergunta no centro. */
+.overlays { position: absolute; inset: 0; pointer-events: none; }
+.overlays > * { pointer-events: auto; }
+.turn-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+}
+.turn-arrow:disabled { opacity: 0.2; }
+.turn-left { left: 10px; }
+.turn-right { right: 10px; }
+.compass {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--muted);
+  font-size: 0.8rem;
+  pointer-events: none !important;
+}
+/* A pergunta cobre a visão toda: quem responde não vê o professor. */
+.question-cover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4%;
+  background: rgba(0, 0, 0, 0.94);
+}
+.question-cover .question-view { width: min(640px, 100%); }
+
+.cue { margin: 0; padding: 12px; border-radius: 8px; font-weight: 700; font-size: 1.05rem; text-align: center; background: #14301f; color: #8ce99a; }
+.cue.looking { background: #4a1414; color: #ff8787; animation: cue-pulse 0.7s infinite alternate; }
+@keyframes cue-pulse { to { background: #6a1c1c; } }
+
+.panel-message { margin: 0; font-size: 1.05rem; font-weight: 600; }
+.panel-message.bad { color: #ff8787; }
+.panel-stats { margin: 0; color: var(--muted); font-size: 0.9rem; }
+
+.legend-box { display: flex; flex-direction: column; gap: 6px; }
+.legend { margin: 0; padding-left: 10px; font-size: 0.9rem; color: var(--muted); border-left: 4px solid; }
+.legend-near { border-color: #2e8b57; }
+.legend-far { border-color: #ff9f43; }
+
+.question-view { display: flex; flex-direction: column; gap: 8px; }
+.question-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.question-text { margin: 0; font-size: 1.15rem; }
+.answer-seconds { color: var(--muted); font-size: 0.95rem; white-space: nowrap; }
+.bar { height: 6px; background: var(--panel); border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; background: var(--accent); transition: width 0.25s linear; }
+.options { display: flex; flex-direction: column; gap: 8px; }
+.option { min-height: 48px; padding: 10px 12px; font-size: 1.05rem; text-align: left; }
+.option.removed { text-decoration: line-through; opacity: 0.3; }
+
+.ghost-mode { opacity: 0.8; }
+.ghost-view { display: flex; flex-direction: column; gap: 8px; }
+.ghost-view .students { gap: 8px; }
+.ghost-view .students li { padding: 0; background: none; }
+
+.turn-controls { display: flex; flex-direction: column; gap: 8px; }
+.turn-controls button { padding: 12px 14px; font-size: 1rem; }
+.turn-controls button.active { background: var(--accent); }
+
+/* Em paisagem (celular deitado) a explicação vai em duas colunas para caber na altura da tela. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .screen.briefing { max-width: 900px; padding-top: 10px; padding-bottom: 10px; gap: 8px; }
+  .screen.briefing h1 { font-size: 1.2rem; margin: 0; }
+  .screen.briefing .how-to ol { display: block; columns: 2; column-gap: 28px; font-size: 0.88rem; }
+  .screen.briefing .how-to li { break-inside: avoid; margin-bottom: 8px; }
+  .screen.briefing .how-to h2 { font-size: 1rem; }
+  .screen.briefing #briefing-start { padding: 12px; }
+}
+
+/* Mapa para escolher a carteira (sala de espera e explicação do solo). A frente da sala fica em cima. */
+.seat-map { display: flex; flex-direction: column; gap: 8px; }
+.seat-map h2 { margin: 0; color: var(--text); }
+.seat-front { margin: 0; text-align: center; color: var(--muted); font-size: 0.8rem; letter-spacing: 0.05em; }
+.seat-grid { display: grid; gap: 6px; max-width: 420px; }
+.seat { min-height: 44px; padding: 4px; font-size: 0.7rem; line-height: 1.1; border: 2px solid #2a2a38; overflow: hidden; }
+.seat:not(:disabled) { border-color: #2e8b57; }
+.seat.taken { background: #2a2a3a; }
+.seat.mine { border-color: var(--you, #ffd43b); background: #3a3320; color: #ffd43b; font-weight: 700; opacity: 1; }
+.seat.forbidden { background: repeating-linear-gradient(45deg, #1b1b26, #1b1b26 6px, #232331 6px, #232331 12px); color: var(--muted); }
+.seat.door { border-style: dashed; }
+.briefing-columns { display: flex; flex-direction: column; gap: 14px; }
+@media (min-width: 700px) { .briefing-columns { flex-direction: row; align-items: flex-start; } .briefing-columns > * { flex: 1; } }
+
+.how-to { display: flex; flex-direction: column; gap: 8px; }
+.how-to h2 { margin: 0; color: var(--text); }
+.how-to ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; line-height: 1.35; }
+
+/* Aviso de girar o aparelho: as telas de jogo só funcionam em paisagem. */
+.rotate-hint {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--bg);
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+@media (orientation: portrait) and (max-width: 900px) { .rotate-hint { display: flex; } }
+
+/* Susto: a cara do professor cresce de repente até encher a tela. Um único clarão vermelho, sem luz piscando em sequência. */
+.jumpscare {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  animation: jumpscare-flash 1.2s ease-out forwards;
+  pointer-events: none;
+}
+.jumpscare-face {
+  height: 92vh;
+  max-width: 96vw;
+  object-fit: contain;
+  image-rendering: pixelated;
+  animation: jumpscare-zoom 1.2s ease-out forwards;
+}
+@keyframes jumpscare-flash {
+  0% { background: #b00020; }
+  14% { background: #000; }
+  85% { background: #000; opacity: 1; }
+  100% { background: #000; opacity: 0; }
+}
+@keyframes jumpscare-zoom {
+  0% { transform: scale(0.04); }
+  10% { transform: scale(1.18); }
+  16% { transform: scale(1); }
+  30% { transform: scale(1.04) translate(-6px, 3px); }
+  45% { transform: scale(1.06) translate(5px, -3px); }
+  100% { transform: scale(1.12); }
+}
+.shake { animation: shake 0.5s; }
+@keyframes shake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-10px, 6px); }
+  40% { transform: translate(8px, -8px); }
+  60% { transform: translate(-6px, 8px); }
+  80% { transform: translate(6px, -4px); }
+}
+
+.question-form { display: flex; flex-direction: column; gap: 8px; }
+.question-form h3 { margin: 0; }
+textarea {
+  padding: 12px;
+  font-size: 1rem;
+  font-family: inherit;
+  border: 1px solid #2a2a38;
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  resize: vertical;
+}
+.option-row { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center; }
+.option-row input[type='radio'] { width: 20px; height: 20px; }
+
+.students { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.students li { padding: 12px; background: var(--panel); border-radius: 8px; }
+.students li.empty { color: var(--muted); }
