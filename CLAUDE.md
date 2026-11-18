@@ -1,6 +1,6 @@
 # GameClassRoom
 
-Jogo de fuga em sala de aula (terror leve) para praticar inglês. Contexto completo em `Handoff.txt`.
+Jogo de fuga em sala de aula (terror leve) para praticar inglês. Contexto completo no primeiro handoff, `docs/handoffs/20261117_203827_thaiscaroline_estado-inicial-do-jogo.md`. Os mais recentes estão na mesma pasta.
 
 ## Como trabalhar (REGRAS DO USUÁRIO, valem sempre)
 1. **Não codar sem o OK do usuário.** Primeiro conversar: entender o pedido, propor, e só escrever ou alterar código (e arquivos do projeto) depois de um OK explícito para aquele passo. Um OK vale só para o que foi combinado, não para o próximo passo.
@@ -13,6 +13,9 @@ Jogo de fuga em sala de aula (terror leve) para praticar inglês. Contexto compl
 8. Ao terminar algo, dizer com franqueza o que foi testado e o que não foi.
 
 Histórico: em várias etapas anteriores eu decidi regras sozinho (ex.: formato da sala, limite de alunos, tempos) e implementei sem confirmar; o usuário pediu que isso pare.
+
+## Handoff
+Os handoffs ficam em `docs/handoffs/` e são gerados pela skill `gen-handoff` (`/gen-handoff`). Recomendar ao usuário rodar a skill depois de um commit, de um push, da abertura ou do merge de um PR e ao concluir um bloco de trabalho. Só recomendar: não gerar sem o pedido do usuário.
 
 ## Regras de código
 1. Um arquivo faz uma coisa só. Limite de ~150 linhas; passou disso, dividir.
