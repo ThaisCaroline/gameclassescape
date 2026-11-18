@@ -1,3 +1,112 @@
+# Handoff: Estado do Classroom Escape até o primeiro teste
+
+**Data:** 2026-11-17 (commit `8fd9f32`, 20:38:27, fuso -04)
+**Atualizado em:** 2026-11-17 20:39 (commit `70a6d91`)
+**Autor:** ThaisCaroline (autora dos dois commits)
+**Branch:** main
+**Commits:**
+- `8fd9f32 Primeira versão do Classroom Escape`
+- `70a6d91 Handoff: anotações do primeiro teste e decisão sobre a porta`
+
+**Status:** em andamento
+**Handoff anterior relacionado:** Nenhum
+
+> Este documento é anterior à skill `gen-handoff`. Foi o `Handoff.txt` da raiz, movido para cá com `git mv` (o histórico do arquivo foi preservado). Data e autor vêm do git, e não do momento da migração.
+> As seções 1 a 9 são um **resumo** feito só com fatos que já estavam no texto original. Nada foi reverificado no código nesta migração. O texto original está completo e sem alterações no **Anexo**, e vale como fonte em caso de dúvida.
+
+## 1. Objetivo
+Jogo de fuga em sala de aula, com terror leve, para praticar inglês, no estilo "Luz Verde, Luz Vermelha". O professor joga no notebook e vigia a turma. Os alunos jogam no celular e pulam de carteira em carteira, respondendo perguntas de múltipla escolha, até a carteira da porta. Quem escapa vira fantasma.
+Este handoff registra o estado do projeto na primeira versão ("Classroom Escape") e as anotações do primeiro teste. O foco é o projeto inteiro: `shared`, `server` e `client`, com os três personagens (teacher, student, ghost).
+
+## 2. Decisões
+**Regras de jogo e o que o jogador vê** (as vigentes, segundo o texto; todas decididas junto com o usuário):
+- Sala em grade 5x5, com 25 carteiras de frente para o quadro. A carteira da porta é a `d0-4`, e chegar nela é escapar.
+- No máximo 15 alunos por sala.
+- Pulo só em linha reta, de 1 ou 2 carteiras, sem diagonal. Pulo de 1 dá 30 s para responder, e pulo de 2 dá 20 s. A porta só aceita pulo de 1. Uma pessoa por carteira, e fantasmas não ocupam carteira.
+- Perguntas com 3 alternativas. O professor cadastra no máximo 10 perguntas, e elas não pertencem a uma carteira.
+- Errar a resposta: fica preso 5 s na própria carteira, sem susto. Estourar o tempo: susto e trava de 8 s.
+- Depois de acertar um pulo, o aluno fica parado 15 s. Esse valor foi mantido por decisão do usuário, até testar com pessoas.
+- Quem é pego vai para a carteira livre mais distante da porta.
+- A carteira é escolhida na sala de espera (quem chega primeiro escolhe primeiro), com uma zona proibida de 5 carteiras perto da porta.
+- A dificuldade é escolhida por quem abre a sala. Ela controla o escuro, as piscadas e o aviso do professor (fácil: sempre; médio: só quando a câmera olha para ele; difícil: nunca).
+- Susto com a cara do professor em pixel art, ao estourar o tempo e ao ser pego. Errar não dá susto.
+- Vitória do aluno: sair pela porta. Vitória do professor: reter pelo menos metade da turma até o cronômetro zerar.
+- Visão em primeira pessoa, com câmera livre para os 4 lados, para o aluno, o fantasma e o professor humano. A vista de cima é só andaime e mapa de escolha de carteira.
+- Duração da aula: o texto traz valores diferentes (10 min por padrão no multijogador; no solo aparecem 4 e 5 min). Ver o Anexo.
+
+**Técnicas e de estrutura:**
+- TypeScript no cliente, no servidor e no `shared`, com npm workspaces. Cliente em Phaser + Vite, servidor em Node + Socket.io, estado em memória.
+- O servidor valida tudo e guarda as respostas certas. Cronômetros são timestamps absolutos decididos pelo servidor.
+- Os robôs do modo solo rodam no servidor e usam as mesmas funções de regra dos humanos, sem regra duplicada.
+- Distribuição, em ordem: link web/PWA; Google Play via Capacitor (opcional); App Store adiada.
+- Hospedagem escolhida: Railway, em modo Node nativo. Sem Docker, por decisão do usuário.
+- Descartado: o Dockerfile (removido); duas perguntas por pulo (rejeitado pelo usuário); os layouts em U e em fileira (substituídos pela grade 5x5).
+
+## 3. O que foi feito
+1. Estrutura de pastas, `CLAUDE.md`, workspaces, tsconfigs, tipos em `shared/` e mensagens de rede.
+2. Servidor: salas, rede, regras de cada personagem, cronômetros, fim de rodada e desconexão.
+3. Cliente: Vite, i18n, telas Enter e lobby, painel do professor, telas do aluno e do fantasma, tela do professor, efeitos de tela, Wake Lock e áudio.
+4. Cena em Phaser, primeiro vista de cima e depois primeira pessoa, com arte provisória gerada por código.
+5. Modo solo com robôs no servidor e 3 dificuldades.
+6. PWA, build e preparação da publicação (`docs/DEPLOY.md`).
+7. Ajustes após o 1º teste do usuário (6 pontos), regras para alongar a partida e medição do equilíbrio dos níveis com um aluno simulado.
+8. Limpeza de código morto, autorizada pelo usuário.
+9. Registro das anotações do usuário depois do primeiro teste (nada decidido nem implementado).
+
+## 4. Estado atual
+**Funciona:** as regras no servidor, o multijogador, o modo solo, as telas, o áudio provisório, o PWA e o build local, segundo os testes descritos no texto (por socket e em navegador simulado).
+**Incompleto:** arte e sons reais (hoje provisórios), animações em quadros, publicação, política de privacidade e faixa etária (Play Store). Pendências do texto: o apelido do professor não é guardado, não há reconexão, o professor não escolhe a duração da aula, não há rodízio de professor nem nova rodada na mesma sala, e o `npm audit` tem 2 vulnerabilidades no servidor de desenvolvimento.
+**Quebrado / em dúvida:**
+- Bug da porta no primeiro teste: o usuário não conseguiu clicar "na porta" para sair. A porta desenhada na parede não responde ao toque; só a carteira da porta responde. O usuário decidiu deixar como está por enquanto.
+- A "cabeça flutuando na tela" relatada pelo usuário não foi reproduzida (falta um print).
+- O texto registra que o teste antigo `grid-rules` pode estar desatualizado frente às regras novas.
+**Testado:** por socket e em navegador simulado (Edge via Playwright): regras no servidor, os três papéis, solo com robôs, PWA, build limpo, servidor servindo o front, geração dos sons.
+**Não testado:** celular de verdade; som ouvido por pessoas; publicação no Railway; equilíbrio e se é divertido (com pessoas e com professor humano); necessidade do toque no "Enter" em navegador com bloqueio estrito de áudio.
+**Desvios das regras do `CLAUDE.md`:**
+- `teacher-scene.ts` tem ~167 linhas (limite de ~150).
+- A cena do professor vista de cima não é mais usada, mas foi mantida no código de propósito.
+- O aviso do professor por dificuldade é só apresentação: o servidor continua enviando `teacherFacing` a todos.
+
+## 5. Próximos passos
+1. **Próximo passo imediato:** jogar o solo de verdade e ajustar os níveis em `server/src/bots/difficulty.ts`.
+2. Testar com pessoas e em celulares reais antes de mexer de novo no tempo de pausa (`restAfterJumpMs`; o texto estima que 30 s dê ~2,5-3 min de partida no simulador).
+3. Publicar seguindo `docs/DEPLOY.md` (ação do usuário) e testar em celulares reais.
+4. Gerar a arte e os sons reais (`docs/ASSETS.md`) e integrá-los.
+5. Discutir, um de cada vez, as anotações do primeiro teste (seção 6).
+6. Do lado do código: reconexão, jogar de novo / rodízio de professor e, opcionalmente, Capacitor / Play Store.
+
+## 6. Perguntas em aberto
+- [ ] Bug da porta: (A) a porta da parede vira o alvo do toque, com brilho e tempo, ou (B) manter a carteira da porta como alvo, mas desenhada como porta? Retomar mais tarde (usuário decide).
+- [ ] Regra nova: dar um motivo para o professor virar para o quadro (o quadro mostra o progresso da aula; quando termina, o professor vence se tiver pelo menos X alunos). Em aberto: o progresso só avança com ele de costas? quanto tempo? quanto vale X? como convive com o cronômetro e com a vitória por "metade da turma"?
+- [ ] Pesquisa: qual pista visual ou sonora é mais justa e assustadora para o professor identificar um aluno tentando trocar de cadeira (hoje: anel vermelho no chão, só enquanto ele olha)?
+- [ ] Faixa etária (menores de 13 anos) e política de privacidade para a Play Store; checar se a conta exige teste fechado.
+- [ ] Pedir ao usuário um print da "cabeça flutuando".
+- [ ] "Bastante coisa para melhorar", segundo o usuário: ainda por listar, um de cada vez.
+
+## 7. Trabalho paralelo e conflitos
+**Arquivos e módulos que este handoff cobre:** o projeto inteiro da primeira versão (`shared`, `server`, `client`, `docs`).
+**Áreas em que outros devs podem estar mexendo:** o texto diz que outro desenvolvedor também vai trabalhar no projeto. Não indica em qual área.
+**Pontos de integração ou risco de conflito:** tipos e mensagens de rede em `shared/`, o `config` do servidor e do cliente, `client/src/i18n/en.json` e `client/public/assets/available.json` (arte e áudio compartilham o mesmo arquivo).
+
+## 8. Artefatos relevantes
+| Artefato | Caminho | Por que é relevante |
+|---|---|---|
+| Regras do projeto | `CLAUDE.md` | Regras de trabalho e de código |
+| Guia de arte e sons | `docs/ASSETS.md` | Peças, tamanhos, estilo e tabela dos 8 sons |
+| Guia de publicação | `docs/DEPLOY.md` | Passos para publicar no Railway |
+| Perfis dos robôs | `server/src/bots/difficulty.ts` | Números dos níveis de dificuldade |
+| Alcance do pulo | `shared/src/reach.ts` | Regra de alcance usada por servidor e cliente |
+
+## 9. Instruções para quem continuar
+- **Ler primeiro:** `CLAUDE.md` e o bloco "REGRAS ATUAIS DA SALA EM GRADE" do Anexo. Blocos marcados como HISTÓRICO ou SUPERSEDIDO não valem.
+- **Armadilha:** tratar um bloco histórico como regra vigente, ou implementar algo das "ANOTAÇÕES DO USUÁRIO DEPOIS DO PRIMEIRO TESTE", que não foi decidido nem implementado.
+- **Confirmação necessária:** qualquer código e qualquer mudança de regra do jogo ou do que o jogador vê exigem OK explícito do usuário (regras do `CLAUDE.md`).
+
+## Anexo: texto original (sem alterações)
+
+Conteúdo integral do `Handoff.txt` como estava no commit `70a6d91`.
+
+```text
 Handoff: Game de sala de aula (inglês)
 
 Conceito: jogo de fuga em sala de aula com tema de terror leve, para praticar inglês. Parecido com “Luz Verde, Luz Vermelha”. Professor e alunos jogam na mesma sala, uma rodada por vez.
@@ -224,3 +333,4 @@ Pendências
 - Sem rodízio de professor entre rodadas nem nova rodada na mesma sala (após ended a sala fica parada).
 
 Próximo passo sugerido: jogar o solo de verdade e ajustar os níveis (server/src/bots/difficulty.ts); o usuário publica seguindo docs/DEPLOY.md e testa com celulares reais (nada foi visto num celular de verdade ainda). Em paralelo, gera a arte e os sons reais (docs/ASSETS.md) e eu integro. Do lado do código: reconexão, jogar de novo/rodízio de professor, e (opcional) Capacitor/Play Store.
+```
